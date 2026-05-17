@@ -38,6 +38,24 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card bg-danger text-white mb-4">
+                            <div class="card-body">Số lượng sản phẩm (${countProducts})</div>
+                            <div class="card-footer d-flex align-items-center justify-content-between">
+                                <a class="small text-white stretched-link" href="/admin/product">Chi tiết</a>
+                                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card bg-success text-white mb-4">
+                            <div class="card-body">Số đơn hàng (${countOrders})</div>
+                            <div class="card-footer d-flex align-items-center justify-content-between">
+                                <a class="small text-white stretched-link" href="/admin/order">Chi tiết</a>
+                                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-xl-6">
@@ -91,8 +109,98 @@
         return [year, month, day].join('-');
     }
     console.log(endDate);
+    // Gọi API để lấy dữ liệu thống kê
+    $.ajax({
+        url: '/api/statistics/sales', // Đường dẫn của API thống kê
+        type: 'GET',
+        data: {
+            startDate: formatDate(startDate), // Ngày bắt đầu
+            endDate: formatDate(endDate) // Ngày kết thúc
+        },
+        success: function(data) {
+            // Tạo một đồ thị từ dữ liệu nhận được
+            var ctx = document.getElementById('salesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(item => new Date(item.date).toLocaleDateString('vi-VN')), // Ngày bán hàng
+                    datasets: [{
+                        label: 'Số lượng laptop bán được trong 30 ngày qua',
+                        data: data.map(item => item.counts), // Số lượng laptop bán được
+                        backgroundColor: 'rgba(2, 123, 253, 0.2)',
+                        borderColor: 'rgba(2, 123, 253, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 32
+                        },
+                        yAxes: {
+                            beginAtZero: true,
+                            min: 0,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        error: function(error) {
+            // Xử lý lỗi ở đây
+            console.error(error);
+        }
+    });
 
-
+    // Gọi API để lấy dữ liệu thống kê
+    $.ajax({
+        url: '/api/statistics/sales-by-factory', // Đường dẫn của API thống kê
+        type: 'GET',
+        data: {
+            startDate: formatDate(startDate), // Ngày bắt đầu
+            endDate: formatDate(endDate) // Ngày kết thúc
+        },
+        success: function(data) {
+            // Tạo một đồ thị từ dữ liệu nhận được
+            console.log(data);
+            var ctx = document.getElementById('myBarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item.factory), // Hãng sản xuất
+                    datasets: [{
+                        label: 'Số lượng sản phẩm bán được trong 30 ngày qua',
+                        data: data.map(item => item.counts), // Số lượng sản phẩm bán được
+                        backgroundColor: ['#007bff', '#dc3545', '#ffc107', '#28a745', '#C35AF2', '#ED700D'],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                min: 0,
+                                max: 20,
+                                maxTicksLimit: 5
+                            },
+                            gridLines: {
+                                display: true
+                            }
+                        }],
+                    }
+                }
+            });
+        },
+        error: function(error) {
+            // Xử lý lỗi ở đây
+            console.error(error);
+        }
+    });
 
 </script>
 </body>
